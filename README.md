@@ -1,2 +1,2 @@
 # RS-Project
-2025Fall
+2025 Fall Remote Sensing
