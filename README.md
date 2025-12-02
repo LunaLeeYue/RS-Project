@@ -1,71 +1,101 @@
 # Real-time Flood Inundation Forecasting with Satellite Observations and In-situ Streamflow Data
 
-**Yue Li**   
+**Author:** Yue Li  
+**Course:** GEOL 2283 Remote Sensing  
+**Date:** Dec 3, 2025  
+**University of Houston**
 
-**GEOL 2283 Remote Sensing**
+---
 
-**Dec 3, 2025**
+## 1. Introduction
+Accurate and timely flood extent forecasting is crucial for flood management and disaster response. While traditional hydrodynamic modeling is capable of simulating the water flow within a watershed, it faces significant challenges in large-scale applications due to sensitivity to uncertain inputs and high computational complexity. 
 
-## Introduction
-Accurate and timely flood extent forecasting is crucial for flood management and disaster response. While traditional hydrodynamic modeling is capable of simulating the water flow within a watershed, they face significant challenges in large-scale applications due to its sensitivity to uncertain inputs and high computational complexity. In this project, we present a novel real-time flood forecasting model based on a Convolutional Long Short-Term Memory (ConvLSTM) network. The model effectively integrates multimodal data sources, specifically SNPP/NOAA-20 Visible Infrared Imaging Radiometer Suite (VIIRS) water fraction maps and sparse in-situ streamflow data from the United States Geological Survey (USGS), to capture both the spatial and temporal dependencies of flood dynamics. Its encoder-decoder architecture enhances the model interpretability by clearly separating the input-to-state transformation from the state-to-state generation. Experimental results on the Upper Mississippi Alluvial Plain (UMAP), a large river basin in the U.S., validate the model’s effectiveness in spatio-temporal flood extent mapping and real-time flood forecasting.
+In this project, we present a novel **real-time flood forecasting model** based on a **Convolutional Long Short-Term Memory (ConvLSTM)** network. The model effectively integrates multimodal data sources to capture both spatial and temporal dependencies of flood dynamics. Its **encoder-decoder architecture** enhances interpretability by clearly separating input-to-state transformation from state-to-state generation. 
 
-## Data
+Experimental results on the **Upper Mississippi Alluvial Plain (UMAP)** validate the model’s effectiveness in spatio-temporal flood extent mapping.
+
+## 2. Data
+
 ### VIIRS Water Fraction Maps
+We utilize data from the Visible Infrared Imaging Radiometer Suite (VIIRS) on board SNPP/NOAA-20 satellites. These maps provide high-resolution (375m) daily monitoring of surface water, essential for detecting inundation patterns.
 
 ### USGS Streamflow Data
+In-situ streamflow measurements (gauge height/discharge) from the United States Geological Survey (USGS) are integrated to provide ground-truth hydrological constraints and improve temporal accuracy.
 
-## Study Area
-Upper Mississippi Alluvial Plain (UMAP)
-![Study Area](StudyArea.jpg)
+## 3. Study Area
+**Upper Mississippi Alluvial Plain (UMAP)** A large river basin in the U.S. prone to seasonal flooding.
 
-## Long-term Flood Pattern Analysis
+<img src="StudyArea.jpg" width="80%">
+
+---
+
+## 4. Long-term Flood Pattern Analysis
 
 ### Data Processing
-![Sample](Sample_Original.mp4)
-*Processed Water Fraction Maps*
+Preprocessing involves addressing cloud cover gaps and temporal interpolation to create continuous flood records.
 
-![LinearInterpolation](Sample_Interoplated.mp4)
-*Processed Water Fraction Maps after temporal Interpolation*
+| **Original Water Fraction Map** | **After Temporal Interpolation** |
+|:---:|:---:|
+| <video src="Sample_Original.mp4" controls="controls" width="100%"></video> | <video src="Sample_Interoplated.mp4" controls="controls" width="100%"></video> |
+| *Original data with gaps* | *Gap-filled continuous data* |
 
-### Flood Dynamics
-![Flood Frequency](FloodFrequency.jpg)
+### Flood Dynamics Analysis (2012–2020)
 
-![Max Frequency](MaxFrequency.jpg)
+**Flood Frequency Map & Max Extent** By analyzing the time-series data, we derived the inundation frequency and maximum extent to identify high-risk zones.
 
-![Max Inundation Extent](MaxExtent.jpg)
+| Flood Frequency | Max Frequency | Max Inundation Extent |
+|:---:|:---:|:---:|
+| <img src="FloodFrequency.jpg" width="100%"> | <img src="MaxFrequency.jpg" width="100%"> | <img src="MaxExtent.jpg" width="100%"> |
 
-## Real-time Flood Forecasting
+---
 
-### Overall Framework
-![Model](model.jpg)
+## 5. Real-time Flood Forecasting
 
-### Convolutional LSTM
-![ConvLSTM Structure](ConvLSTM.jpg)
+### Methodology
+We employ a Deep Learning approach combining satellite imagery and gauge data.
 
-### Case Studies
-![Case1_input](Case1_input.png)
+* **Overall Framework**: Integration of VIIRS and USGS data.
+* **Model Architecture**: ConvLSTM (Encoder-Decoder) to predict future frames based on historical sequences.
 
-![Case1_output1](Case1_output1.png)
-![Case1_output2](Case1_output2.png)
-![Case1_output3](Case1_output3.png)
+| Overall Framework | ConvLSTM Structure |
+|:---:|:---:|
+| <img src="model.jpg" width="100%"> | <img src="ConvLSTM.jpg" width="100%"> |
 
-![Case1_output](Case1_output.png)
+### Case Studies Results
 
-![Case2_input](Case2_input.png)
+Here we compare the model inputs (past days) with the model predictions (forecasted days).
 
-![Case2_output1](Case2_output1.png)
-![Case2_output2](Case2_output2.png)
-![Case2_output3](Case2_output3.png)
+#### Case Study 1
+*Input Sequence vs. Forecasting Output*
 
-![Case2_output](Case2_output.png)
+| Input (T-n) | Forecast (T+1) | Forecast (T+2) | Forecast (T+3) |
+|:---:|:---:|:---:|:---:|
+| <img src="Case1_input.png"> | <img src="Case1_output1.png"> | <img src="Case1_output2.png"> | <img src="Case1_output3.png"> |
 
+**Comparison with Ground Truth:**
+<img src="Case1_output.png" width="80%">
 
-## Summary
-Spatio-temporal Analysis (2012–2020)
-Visualize long-term flood patterns with Inundation Frequency Map and Maximum Inundation Extent Map 
-Validate temporal correlation between RS observation with in-situ measurement data.
+#### Case Study 2
+*Input Sequence vs. Forecasting Output*
 
-Real-time Flood Forecasting
-Develop a deep learning model for flood forecasting
-Limited by cloud cover, leading to under/over-prediction in specific events.
+| Input (T-n) | Forecast (T+1) | Forecast (T+2) | Forecast (T+3) |
+|:---:|:---:|:---:|:---:|
+| <img src="Case2_input.png"> | <img src="Case2_output1.png"> | <img src="Case2_output2.png"> | <img src="Case2_output3.png"> |
 
+**Comparison with Ground Truth:**
+<img src="Case2_output.png" width="80%">
+
+---
+
+## 6. Summary
+
+**Spatio-temporal Analysis (2012–2020)**
+* Visualized long-term flood patterns using Inundation Frequency Maps and Maximum Inundation Extent Maps.
+* Validated the strong temporal correlation between Remote Sensing observations and in-situ measurement data.
+
+**Real-time Flood Forecasting**
+* Developed a robust deep learning model (ConvLSTM) for flood forecasting.
+* **Limitation:** Performance is occasionally limited by heavy cloud cover in optical imagery, which can lead to under/over-prediction in specific extreme events.
+
+---
+*Created for GEOL 2283 Course Project | University of Houston*
