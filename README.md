@@ -4,8 +4,6 @@
 **GEOL 2283 Remote Sensing**
 **Dec 3, 2025**
 
----
-
 ## Introduction
 Accurate and timely flood extent forecasting is crucial for flood management and disaster response. While traditional hydrodynamic modeling is capable of simulating the water flow within a watershed, they face significant challenges in large-scale applications due to its sensitivity to uncertain inputs and high computational complexity. In this project, we present a novel real-time flood forecasting model based on a Convolutional Long Short-Term Memory (ConvLSTM) network. The model effectively integrates multimodal data sources, specifically SNPP/NOAA-20 Visible Infrared Imaging Radiometer Suite (VIIRS) water fraction maps and sparse in-situ streamflow data from the United States Geological Survey (USGS), to capture both the spatial and temporal dependencies of flood dynamics. Its encoder-decoder architecture enhances the model interpretability by clearly separating the input-to-state transformation from the state-to-state generation. Experimental results on the Upper Mississippi Alluvial Plain (UMAP), a large river basin in the U.S., validate the model’s effectiveness in spatio-temporal flood extent mapping and real-time flood forecasting.
 
@@ -69,10 +67,3 @@ Real-time Flood Forecasting
 Develop a deep learning model for flood forecasting
 Limited by cloud cover, leading to under/over-prediction in specific events.
 
-
-
-
-
-
----
-*GitHub Pages*
