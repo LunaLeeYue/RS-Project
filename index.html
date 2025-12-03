@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Flood Forecasting Project</title>
+    <style>
+        /* --- Global Settings --- */
+        html {
+            scroll-behavior: smooth; /* Key: Enables smooth scrolling when clicking navigation links */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #fdfdfd;
+            font-size: 18px;
+        }
+
+        /* --- Top Banner --- */
+        .banner-container {
+            /* Make sure 'background.jpg' is in the same folder as this HTML file */
+            background-image: url('background.jpg'); 
+            background-size: cover;
+            background-position: center;
+            height: 400px; /* Adjusted height */
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .banner-text {
+            color: white;
+            text-align: center;
+            text-shadow: 0px 2px 10px rgba(0,0,0,0.8); /* Shadow for better readability */
+            padding: 20px;
+        }
+        
+        .banner-text h1 { margin: 0; font-size: 2.5rem; color: white; }
+        .banner-text p { margin: 0; font-size: 1.5rem; color: #eee; }
+
+        /* --- Core Layout: Page Wrapper (Flexbox) --- */
+        .page-wrapper {
+            display: flex; /* Key: Places sidebar and content side-by-side */
+            max-width: 1500px; /* Limit max width for large screens */
+            margin: 0 auto; /* Center the wrapper */
+            padding: 40px 20px;
+            gap: 40px; /* Space between sidebar and main content */
+        }
+
+        /* --- Sidebar Navigation --- */
+        .sidebar {
+            width: 300px; /* Sidebar width */
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
+            height: fit-content;
+            position: sticky; /* Key: Sticks the sidebar to the screen while scrolling */
+            top: 40px; /* Distance from top when sticky */
+            border-right: 1px solid #eee;
+            padding-right: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #40454b;
+            font-weight: 800;
+            display: block;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: #f1f8ff;
+            color: #0366d6;
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            flex-grow: 1; /* Allows content to fill remaining space */
+            background-color: white;
+            margin: 0; 
+            padding: 0;
+        }
+
+        /* Heading Styles */
+        h1, h2 { color: #05264d; margin-top: 1.5em; }
+        h2 { 
+            border-bottom: 1px solid #eaecef; 
+            padding-bottom: 0.3em; 
+            /* Fix: Offset scroll position so the header isn't hidden behind the top edge */
+            scroll-margin-top: 20px; 
+        }
+
+        /* Table & Image Styles */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        td, th { text-align: center; padding: 10px; vertical-align: top; }
+        img, video { max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* Intro Box Style */
+        .intro-box {
+            background: #f6f8fa;
+            padding: 40px;
+            border-left: 4px solid #0366d6;
+            margin: 40px 0;
+            text-align: justify;
+        }
+
+        footer { text-align: center; padding: 40px; color: #666; font-size: 0.9em; border-top: 1px solid #eee; margin-top: 50px; }
+
+        /* --- Mobile Responsiveness (Sidebar moves to top on small screens) --- */
+        @media (max-width: 768px) {
+            .page-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; position: static; border-right: none; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="banner-container">
+        <div class="banner-text">
+            <h1>GEOL 2283 Remote Sensing</h1>
+            <p>Course Project</p>
+        </div>
+    </div>
+
+    <div class="page-wrapper">
+        
+        <nav class="sidebar">
+            <ul>
+                <li><a href="#intro">Introduction</a></li>
+                <li><a href="#data">Data</a></li>
+                <li><a href="#study-area">Study Area</a></li>
+                <li><a href="#pattern-analysis">Long-term Flood Patterns</a></li>
+                <li><a href="#forecasting">Real-time Flood Forecasting</a></li>
+                <li><a href="#summary">Summary</a></li>
+            </ul>
+            
+            <div style="margin-top: 30px; font-size: 0.9em; color: #666; padding-left: 12px;">
+                <p><strong>Yue Li</strong><br>
+                University of Houston<br>
+                Dec 2025</p>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            
+            <h2 id="intro">Introduction</h2>
+            <div class="intro-box">
+                <p>Accurate and timely flood extent forecasting is crucial for flood management. While traditional hydrodynamic modeling simulates water flow well, it faces challenges in large-scale applications due to computational complexity.
+                    In this project, we utilize <strong> Visible Infrared Imaging Radiometer Suite (VIIRS) water fraction maps</strong> for long-term flood monitoring and analysis.
+                    Moreover, we present a novel <strong>real-time flood forecasting model</strong> based on a ConvLSTM network. The model integrates VIIRS water fraction maps and <strong>USGS streamflow data</strong> to capture spatio-temporal dependencies.
+                    Its encoder-decoder architecture enhances interpretability. Experimental results on the <strong>Upper Mississippi Alluvial Plain (UMAP)</strong> validate the model’s effectiveness.
+                </p>
+            </div>
+
+
+            <h2 id="data">Data</h2>
+            <h3>VIIRS Water Fraction Maps</h3>
+            <div style="float: right; width: 40%; min-width: 300px; background: #fcfcfc; border: 1px solid #eee; border-radius: 6px; padding: 10px; margin-left: 20px; margin-bottom: 10px;">
+                <h4 style="margin-top: 0; text-align: center; color: #555;">VIIRS Sensor Resolution</h4> 
+                <table style="margin: 0;">
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="text-align: center; font-weight: 600; width: 30%; color: #444;">Spatial</td>
+                        <td style="text-align: left;">375 m, 750 m</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="text-align: center; font-weight: 600; color: #444;">Spectral</td>
+                        <td style="text-align: left;">22 spectral bands (0.402 - 12.49 µm)</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center; font-weight: 600; color: #444;">Temporal</td>
+                        <td style="text-align: left;">Daily (2012 - Present)</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p style="text-align: justify;">
+                The Visible Infrared Imaging Radiometer Suite (VIIRS) is aboard the joint NASA/NOAA Suomi National Polar-orbiting Partnership (Suomi NPP) and NOAA platforms. VIIRS collects visible and infrared imagery along with global observations of Earth's land, atmosphere, cryosphere, and ocean.
+            </p>
+
+            <p style="text-align: justify;">
+                VIIRS extends observational records collected by similar instruments aboard previously-launched satellites, such as NASA's Moderate Resolution Imaging Spectroradiometer (MODIS) and NOAA's Advanced Very High Resolution Radiometer (AVHRR). 
+            </p>
+            <div style="clear: both;"></div>
+
+            <div style="background-color: #f6f8fa; border-left: 5px solid #d1d5da; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                <p style="margin: 0; text-align: justify; color: #24292e;">
+                    VIIRS water fraction maps describe, the percentage of the surface that is covered by water within each 375m pixel. The basic idea is to use the spectral contrast between water and land and then translate the signal strength into a fractional value rather than a simple water/non-water label.
+                </p>
+            </div>
+            <figure style="margin: 20px 0; text-align: center;">
+            <figure style="margin: 20px 0; text-align: center;">
+    
+                <img src="VIIRS_Viewer.png" alt="VIIRS Viewer" style="width: 100%; display: block; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                
+                <figcaption style="margin-top: 10px; font-size: 0.9em; color: #666; line-height: 1.4;">
+                    <strong>VIIRS Viewer Application Interface</strong> 
+                    <br> Source: <a href="https://fema.maps.arcgis.com/apps/webappviewer/index.html?id=8332b01063a949399ba846e93e6ee26f" target="_blank" style="color: #0366d6; text-decoration: none; border-bottom: 1px dotted #0366d6;">
+                        FEMA ArcGIS Web AppViewer
+                    </a>
+                </figcaption>
+
+            </figure>
+            </figure>
+            
+            <h3>USGS Streamflow Data</h3>
+            <p>U.S. Geological Survey (USGS) maintains thousands of streamgages that record water level and convert it to discharge through a rating curve. Many sites report in near real time, stored in the National Water Information System, and made available through web services for research, water management, and flood monitoring.</p>
+
+            <h2 id="study-area">Study Area</h2>
+            <div style="float: right; width: 75%; min-width: 300px; text-align: center;">
+                <img src="StudyArea.jpg" alt="Study Area" style="width: 65%; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <p style="font-size: 0.9em; color: #666; margin-top: 5px;"><strong>Study Area</strong></p>
+            </div>
+
+            <ul style="line-height: 1.8; color: #444; text-align: justify; margin-top: 100px;">
+                <li style="margin-bottom: 20px;"> <strong>Total Area: 16053.59 km²</strong>
+                </li>
+                <li style="margin-bottom: 20px;"> Stretches along the Mississippi River, covering parts of Missouri, Illinois, Arkansas, Tennessee, and Kentucky.
+                </li>
+                <li style="margin-bottom: 20px;">
+                    Nowadays, UMAP region is almost entirely cleared for <strong>cropland</strong>. It produces corn, wheat, soybeans, feed grain, and hay for livestock.
+                </li>
+                <li>
+                    Flood management and forecasting can <strong>mitigate crop losses and ensure food security</strong> by identifying flood-prone regions.
+                </li>
+            </ul>
+
+            <div style="clear: both;"></div>
+
+            <h2 id="pattern-analysis">Long-term Flood Pattern Analysis</h2>
+            
+            <h3>Data Processing</h3>
+            <div style="display: flex; gap: 30px; align-items: flex-start; margin-bottom: 30px;">
+    
+                <div style="flex: 0 0 52%; min-width: 250px; text-align: center; padding: 10px;background: #fdfdfd;">
+                    <img src="Class.png" alt="VIIRS Data Types" style="width: 100%; border-radius: 4px;">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 8px; margin-bottom: 0;"><strong>Class Labels of Original VIIRS Data</strong></p>
+                </div>
+
+                <div style="flex: 1;">
+                    
+                    <p style="text-align: justify; margin-top: 0;">
+                        To quantify flood inundation accurately, we performed a <strong>re-classification process</strong> on the raw VIIRS data. As shown in the figure, the original dataset contains multiple labels for various land covers (e.g., Snow, Ice, and Vegetation) and quality flags (e.g., Cloud, Shadow). 
+                    </p>
+                    <p style="text-align: justify;">
+                        We filtered out these non-water classes to exclusively focus on the <strong>Water Fraction</strong> information, which is critical for identifying sub-pixel inundation.
+                    </p>
+
+                    <div style="background-color: #f8f9fa; border-left: 4px solid #bdbfc3; padding: 15px; border-radius: 4px; margin-top: 20px;">
+                        
+                        <h4 style="margin-top: 0; margin-bottom: 10px; color: #24292e; font-size: 1rem;">
+                            Preprocessing Workflow
+                        </h4>
+                        
+                        <ul style="list-style: none; padding: 0; margin: 0; line-height: 1.8; font-size: 0.95em;">
+                            <li style="margin-bottom: 8px;">
+                                <span style="color: #28a745; font-weight: bold; margin-right: 8px;">&#10003;</span> 
+                                Mask out <strong style="color: #d73a49; background: #ffeef0; padding: 1px 4px; border-radius: 3px;">NoData</strong> pixels
+                            </li>
+                            <li style="margin-bottom: 8px;">
+                                <span style="color: #28a745; font-weight: bold; margin-right: 8px;">&#10003;</span>
+                                Classify non-water as <strong style="color: #0366d6;">water fraction = 0%</strong>
+                            </li>
+                            <li style="margin-bottom: 8px;">
+                                <span style="color: #28a745; font-weight: bold; margin-right: 8px;">&#10003;</span>
+                                Classify normal water as <strong style="color: #0366d6;">water fraction = 100%</strong>
+                            </li>
+                            <li>
+                                <span style="color: #28a745; font-weight: bold; margin-right: 8px;">&#10003;</span>
+                                Rescale water fraction to <strong style="color: #0366d6;">0-100%</strong>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div> </div>
+            
+            <figure style="
+                margin: 30px auto; 
+                text-align: center; 
+                background-color: #f8f9fa;
+                padding: 30px; 
+                border-radius: 8px; 
+                border: 1px solid #e1e4e8; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+                max-width: 90%; 
+            ">
+                
+                <video src="Sample_Original.mp4" controls style="
+                    width: 100%;
+                    max-width: 900px; 
+                    border-radius: 4px; 
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    display: block; 
+                    margin: 0 auto;
+                "></video>
+
+                <figcaption style="margin-top: 12px; font-size: 0.95em; color: #586069;">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 5px;"><strong>Processed VIIRS Data Sample</strong></p>
+                </figcaption>
+
+            </figure>
+
+            <h3>Cloud Gap Filling</h3>
+            <p style="text-align: justify;"> A major challenge of VIIRS optical imagery is <strong>cloud cover</strong>, which creates gaps in the data.</p>
+            <p style="text-align: justify;"> <strong>Temporal Linear interpolation</strong> is used to fill these gaps and improve data continuity, wchich uses information from the same pixel at two known times to estimate a missing value at an intermediate time. It assumes that the physical variable changes at a roughly steady rate between the two valid observations.</p>
+            <p style="text-align: justify;">
+                This is applied <strong>pixel by pixel</strong>. For each cloud pixel, the algorithm searches backward and forward in time to find the nearest valid maps. For a pixel with a missing value at time \(t\), and two valid observations at times \(t_{1}\) and \(t_{2}\) (where \(t_{1} < t < t_{2}\)), the method computes the slope between the two known values and applies it to estimate the value at \(t\).
+
+            </p>
+            <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+            <div style="background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 20px; text-align: center; margin: 20px 0;">
+                <p>\(x(t)=x(t_1)+\dfrac{x(t_2)-x(t_1)}{t_2-t_1}(t-t_1)\)</p>
+
+                <p style="font-size: 0.85em; color: #666; margin-top: 10px;">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 5px;"><strong>Linear Interpolation Formula</strong>
+                </p>
+            </div>
+
+        
+            <div style="text-align: center; margin: 20px 0;">
+                <button onclick="toggleSyncPlay()" style="
+                    background-color: #1aab7d; 
+                    color: white; 
+                    border: none; 
+                    padding: 10px 25px; 
+                    font-size: 1rem; 
+                    border-radius: 20px; 
+                    cursor: pointer; 
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+                    transition: background 0.3s;
+                    font-weight: 600;
+                " onmouseover="this.style.backgroundColor='#0255b3'" onmouseout="this.style.backgroundColor='#1a9f8f'">
+                    ▶ Play / Pause
+                </button>
+            </div>
+
+            <div style="display: flex; gap: 20px; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap;">
+
+                <div style="flex: 1; min-width: 300px; background-color: #fff; border: 1px solid #d73a49; border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center;">
+                    <h4 style="margin-top: 0; margin-bottom: 10px; color: #d73a49; border-bottom: 2px solid #d73a49; display: inline-block; padding-bottom: 5px;">
+                        Original (with Gaps)
+                    </h4>
+                    <video id="vid-original" src="Sample_Original.mp4" controls style="width: 100%; border-radius: 4px; display: block; margin-top: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" muted loop></video>
+                    <p style="font-size: 0.85em; color: #666; margin-bottom: 0; margin-top: 8px;">
+                        Raw water fraction maps showing missing data.
+                    </p>
+                </div>
+
+                <div style="flex: 1; min-width: 300px; background-color: #f6f8fa; border: 1px solid #0366d6; border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(3,102,214,0.1); text-align: center;">
+                    <h4 style="margin-top: 0; margin-bottom: 10px; color: #0366d6; border-bottom: 2px solid #0366d6; display: inline-block; padding-bottom: 5px;">
+                        Gap-filled (Interpolated)
+                    </h4>
+                    <video id="vid-interpolated" src="Sample_Interpolated.mp4" controls style="width: 100%; border-radius: 4px; display: block; margin-top: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" muted loop></video>
+                    <p style="font-size: 0.85em; color: #666; margin-bottom: 0; margin-top: 8px;">
+                        Continuous data after linear interpolation.
+                    </p>
+                </div>
+
+            </div>
+
+            <script>
+                function toggleSyncPlay() {
+                    var v1 = document.getElementById("vid-original");
+                    var v2 = document.getElementById("vid-interpolated");
+
+                    if (v1.paused || v2.paused) {
+
+                        
+                        v1.play();
+                        v2.play();
+                    } else {
+                        v1.pause();
+                        v2.pause();
+                    }
+                }
+            </script>
+
+            <h3>Flood Patterns (2012–2020)</h3>
+            <div style="background-color: #fff; border: 1px solid #e1e4e8; border-left: 5px solid #7a7b7c; border-radius: 4px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                
+                <p style="text-align: justify; margin-top: 0; color: #444; line-height: 1.7;">
+                    We use the <strong>VIIRS water fraction product</strong> to identify surface water occurence. A threshold of 0 is applied meaning all pixels with water fraction greater than 0 are classified as water in the <strong>binary map</strong>. By analyzing the binary maps over time, we calculate <strong>flood frequency</strong> at each pixel to quantify how often flooding occurs. This allows us to characterize long-term flood patterns and identify areas that are frequently inundated.
+                </p>
+
+                <div style="display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 4px; font-size: 0.95em;">
+        
+                    <div style="text-align: center; color: #0366d6; font-weight: 600;">
+                        VIIRS Water Fraction
+                    </div>
+                    
+                    <div style="color: #bbb; font-size: 30px; font-weight: 900; line-height: 1; margin: 0 5px;">
+                        &rarr;
+                    </div>
+                    
+                    <div style="text-align: center; color: #444;">
+                        Thresholding
+                    </div>
+                    
+                    <div style="color: #bbb; font-size: 30px; font-weight: 900; line-height: 1; margin: 0 5px;">
+                        &rarr;
+                    </div>
+                    
+                    <div style="text-align: center; color: #444;">
+                        Binary Map
+                    </div>
+                    
+                    <div style="color: #bbb; font-size: 30px; font-weight: 900; line-height: 1; margin: 0 5px;">
+                        &rarr;
+                    </div>
+                    
+                    <div style="text-align: center; color: #d73a49; font-weight: 600;">
+                        Flood Frequency
+                    </div>
+
+                </div>
+
+            </div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; margin-bottom: 40px;">
+
+                <div style="flex: 1; min-width: 280px; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center;">
+                    <h4 style="margin-top: 0; color: #0366d6; font-size: 1rem;">Flood Frequency Map</h4>
+                    <img src="FloodFrequency.jpg" alt="Flood Frequency" style="width: 100%; height: auto; border-radius: 4px; margin: 10px 0; border: 1px solid #f0f0f0;">
+                    <p style="font-size: 0.9em; color: #666; text-align: justify; margin-bottom: 0;">
+                        Highlights the recurrence of inundation events over 9 years. Darker blue areas mark locations where water occurred very frequently, mainly along the river channel and connected floodplain depressions.
+                        Lighter blue areas indicate locations that were inundated less often, usually higher floodplain surfaces or regions farther from the main channel.
+                    </p>
+                </div>
+
+                <div style="flex: 1; min-width: 280px; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center;">
+                    <h4 style="margin-top: 0; color: #0366d6; font-size: 1rem;">Maximum Inundation Map</h4>
+                    <img src="MaxFrequency.jpg" alt="Maximum Frequency" style="width: 100%; height: auto; border-radius: 4px; margin: 10px 0; border: 1px solid #f0f0f0;">
+                    <p style="font-size: 0.9em; color: #666; text-align: justify; margin-bottom: 0;">
+                        The red areas form a continuous corridor along the main river and its major branches. These red zones represent pixels where the water fraction reached very high values, close to full water coverage.
+                        This is consistent with the active river channel and the low-lying floodplain zones that routinely accommodate deep or sustained water.
+                    </p>
+                </div>
+
+            </div>
+            <div style="background-color: #fff; border: 1px solid #e1e4e8; border-left: 5px solid #7a7b7c; border-radius: 4px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <p style="margin: 0; text-align: justify;">
+                    We compare the daily inundation area derived from VIIRS observations with the USGS streamflow data from 2012 to 2020. The blue curve shows the changes in inundated area, while the green curve represents river discharge.
+                    Both time series display a clear seasonal cycle. Peaks frequently occur in spring, when higher streamflow leads to expanded flooding. During years with major flood events, the two curves rise sharply together, indicating a strong link between discharge increase and surface water spread. The circled periods around 2014, 2015–2016, and 2019–2020 illustrate rapid growth in inundation area following large streamflow pulses.
+                </p>
+            </div>
+
+            <figure style="margin: 0 auto; text-align: center; border: 1px solid #e1e4e8; padding: 10px; border-radius: 8px; background: #fff;">
+                <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin: 30px 0;">
+
+                    <div style="flex: 1; min-width: 300px; text-align: center;">
+                        <img src="USGS_Site.png" alt="USGS Site" style="width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        </div>
+
+                    <div style="flex: 3; min-width: 300px; text-align: center;">
+                        <img src="AreaChange.png" alt="Inundation Area vs Streamflow" style="width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        </div>
+
+                </div>
+                
+                <figcaption style="margin-top: 15px; text-align: center; padding: 0 10px; font-size: 0.9em; color: #586069; line-height: 1.6;">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 5px;"><strong>Daily Inundation Area vs. USGS Streamflow (2012–2020)</strong></p>
+                </figcaption>
+
+            </figure>
+
+            <h2 id="forecasting">Real-time Flood Forecasting</h2>
+
+            <h3>Methodology</h3>
+            <div style="background-color: #fdfdfd; border-left: 5px solid #6e6b6b; padding: 20px 25px; border-radius: 4px; margin: 30px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                
+                <h4 style="margin-top: 0; margin-bottom: 15px; color: #831919; font-size: 1.1rem;">
+                    ConvLSTM-based Flood Forecasting Model
+                </h4>
+
+                <p style="text-align: justify; margin-bottom: 15px; color: #444;">
+                    This model integrates <strong>historical hydrologic observations</strong> with <strong>satellite-derived inundation maps</strong> to predict future inundation patterns. The inputs include daily VIIRS water fraction maps and corresponding streamflow data from USGS. These inputs form a time series that captures both <strong>spatial variations</strong> and <strong>temporal changes</strong> of flooding.
+                </p>
+
+                <p style="text-align: justify; margin-bottom: 15px; color: #444;">
+                    A <strong>ConvLSTM network</strong> is used to learn these spatio-temporal relationships. Convolutional layers extract <span style="color: #0366d6; font-weight: 500;">spatial structure</span> in the water maps, while the recurrent LSTM mechanism models <span style="color: #0366d6; font-weight: 500;">temporal evolution</span> across days.
+                    After learning the joint dynamics, the model generates multi-day forecasts of water fraction maps, providing predictions of where flooding is likely to expand in the future.
+                </p>
+
+                <p style="text-align: justify; margin-bottom: 0; color: #444;">
+                    Overall, the model takes advantage of both spatial information in satellite imagery and temporal hydrologic patterns in streamflow data to improve flood forecasting performance.
+                </p>
+
+            </div>
+            <div style="position: relative; display: inline-block; margin: 20px 0;">
+    
+                <img src="model.png" alt="Overall Framework" style="width: 100%; max-width: 800px; display: block; border-radius: 4px; border: 1px solid #eee;">
+
+                <div class="hotspot" style="
+                    position: absolute;
+                    left: 28%;  
+                    top: 5%;  
+                    width: 30%; 
+                    height: 55%;
+                    cursor: pointer;
+                    z-index: 10;
+                ">
+                    
+                    <div class="popup-box">
+                        <h4 style="margin: 0 0 10px 0; color: #831919; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px;">
+                            ConvLSTM Structure
+                        </h4>
+                        <img src="ConvLSTM.png" alt="ConvLSTM Structure" style="width: 100%; border-radius: 4px;">
+
+                        <ul style="
+                            color: #000000;     
+                            font-size: 0.85em;   
+                            line-height: 1.6;    
+                            text-align: justify; 
+                            margin: 0;
+                            padding-left: 20px;   
+                        ">
+                            <li style="margin-bottom: 8px;">
+                                <strong>Encoder:</strong> Learn spatial-temporal patterns from historical inputs and store memory into the final state.
+                            </li>
+                            <li style="margin-bottom: 8px;">
+                                <strong>Decoder:</strong> Use the stored state to generate future predictions step-by-step, producing a sequence of output maps.
+                            </li>
+                            <li>
+                                <strong>Training:</strong> Minimize the mean squared error between predicted water fractions and true observations.
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <style>
+
+                .popup-box {
+                    display: none; 
+                    position: absolute;
+                    left: 80%; 
+                    top: -50%; 
+                    width: 800px;
+                    background-color: rgba(255, 255, 255, 0.85); 
+                    padding: 15px;
+                    border-radius: 8px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                    z-index: 100;
+                    transition: opacity 0.3s;
+                }
+
+
+                .hotspot:hover .popup-box {
+                    display: block;
+                    animation: fadeIn 0.3s;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateX(-10px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+
+                @media (max-width: 768px) {
+                    .popup-box {
+                        left: -50%;
+                        top: 110%; 
+                        width: 300px;
+                    }
+                    .popup-box::after {
+                        top: -10px;
+                        left: 50%;
+                        border-color: transparent transparent rgba(0, 0, 0, 0.85) transparent; 
+                    }
+                }
+            </style>
+
+            <h3>Case Study</h3>
+            <div style="background-color: #fff; border: 1px solid #e1e4e8; border-left: 5px solid #7a7b7c; border-radius: 4px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <p style="margin: 0; text-align: justify;">
+                    We conduct two flood forecasting case studies focusing on <strong>peak-flow events</strong>. The first case examines a major flooding period in April 2021, and the second evaluates another high-flow event in March 2022.
+                    These events provide representative scenarios to assess the model’s capability to predict rapid expansion of inundation during peak discharge conditions.
+                </p>
+            </div>
+            <h4>Case Study 1 (April 2021)</h4>
+            <div style="background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; text-align: center;">
+
+                <div>
+                    <h5 style="margin: 0 0 10px 0; color: #0366d6; font-weight: 800;">Input History</h5>
+                    
+                    <img src="Case1_input.png" style="max-width: 100%; height: auto; border: 1px solid #eee; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                </div>
+
+                <div style="color: #ccc; font-size: 2.5em; line-height: 2;">&darr;</div>
+
+                <div>
+                    <h5 style="margin: 0 0 15px 0; color: #990505; font-weight: 800;">Forecasting Results</h5>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center; align-items: flex-start;">
+                        
+                        <div style="flex: 1;">
+                            <img src="Case1_output1.png" style="width: 100%; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px;">
+                            <span style="display: block; font-size: 0.9em; color: #666; font-weight: 500;">Day 1</span>
+                        </div>
+
+                        <div style="flex: 1;">
+                            <img src="Case1_output2.png" style="width: 100%; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px;">
+                            <span style="display: block; font-size: 0.9em; color: #666; font-weight: 500;">Day 2</span>
+                        </div>
+
+                        <div style="flex: 1;">
+                            <img src="Case1_output3.png" style="width: 100%; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px;">
+                            <span style="display: block; font-size: 0.9em; color: #666; font-weight: 500;">Day 3</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; margin: 30px 0;">
+
+                <div style="flex: 1; min-width: 320px; background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden;">
+                    
+                    <h4 style="margin: 15px 0 10px; text-align: center; color: #24292e;">Evaluation Metrics</h4>
+
+                    <table style="width: 100%; border-collapse: collapse; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+                        <thead>
+                            <tr style="background-color: #e6f2ff; color: #000; font-size: 1.1em;">
+                                <th style="padding: 12px; border-bottom: 2px solid #fff;">Metrics</th>
+                                <th style="padding: 12px; border-bottom: 2px solid #fff;">Day 1</th>
+                                <th style="padding: 12px; border-bottom: 2px solid #fff;">Day 2</th>
+                                <th style="padding: 12px; border-bottom: 2px solid #fff;">Day 3</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size: 1.05em; color: #333;">
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px; font-weight: 600;">MAE</td>
+                                <td style="padding: 12px; text-decoration: underline;">0.0502</td>
+                                <td style="padding: 12px; color: #d73a49; font-weight: 500;">0.0322</td>
+                                <td style="padding: 12px;">0.0982</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px; font-weight: 600;">RMSE</td>
+                                <td style="padding: 12px; text-decoration: underline;">0.1579</td>
+                                <td style="padding: 12px; color: #d73a49; font-weight: 500;">0.0985</td>
+                                <td style="padding: 12px;">0.2528</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; font-weight: 600;">SSIM</td>
+                                <td style="padding: 12px;">0.9268</td>
+                                <td style="padding: 12px; color: #d73a49; font-weight: 500;">0.9471</td>
+                                <td style="padding: 12px; text-decoration: underline;">0.9431</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+
+                <div style="flex: 2; min-width: 320px; background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 0px; overflow: hidden; display: flex; flex-direction: column;">
+                    
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding-bottom: 15px;">
+                        <img src="Case1_output.png" style="width: 90%; height: auto; border-radius: 4px;">
+                    </div>
+                    <ul style="
+                        margin: 0 0 15px 0; 
+                        padding: 0; 
+                        text-align: center;
+                        list-style-position: inside;
+                        color: #d73a49; 
+                        font-size: 0.95em;
+                    ">
+                        <li><strong>Satisfactory forecasting capability</strong></li>
+                        <li><strong>Slight overprediction</strong></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <h4>Case Study 2 (March 2022)</h4>
+            <div style="background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; text-align: center;">
+
+                <div>
+                    <h5 style="margin: 0 0 10px 0; color: #0366d6; font-weight: 800;">Input History</h5>
+                    
+                    <img src="Case2_input.png" style="max-width: 100%; height: auto; border: 1px solid #eee; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                </div>
+
+                <div style="color: #ccc; font-size: 2.5em; line-height: 2;">&darr;</div>
+
+                <div>
+                    <h5 style="margin: 0 0 15px 0; color: #990505; font-weight: 800;">Forecasting Results</h5>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center; align-items: flex-start;">
+                        
+                        <div style="flex: 1;">
+                            <img src="Case2_output1.png" style="width: 100%; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px;">
+                            <span style="display: block; font-size: 0.9em; color: #666; font-weight: 500;">Day 1</span>
+                        </div>
+
+                        <div style="flex: 1;">
+                            <img src="Case2_output2.png" style="width: 100%; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px;">
+                            <span style="display: block; font-size: 0.9em; color: #666; font-weight: 500;">Day 2</span>
+                        </div>
+
+                        <div style="flex: 1;">
+                            <img src="Case2_output3.png" style="width: 100%; border: 1px solid #eee; border-radius: 4px; margin-bottom: 5px;">
+                            <span style="display: block; font-size: 0.9em; color: #666; font-weight: 500;">Day 3</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            
+             <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; margin: 30px 0;">
+
+                <div style="flex: 1; min-width: 320px; background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden;">
+                    
+                    <h4 style="margin: 15px 0 10px; text-align: center; color: #24292e;">Evaluation Metrics</h4>
+
+                    <table style="width: 100%; border-collapse: collapse; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+                        <thead>
+                            <tr style="background-color: #e6f2ff; color: #000; font-size: 1.1em;">
+                                <th style="padding: 12px; border-bottom: 2px solid #fff;">Metrics</th>
+                                <th style="padding: 12px; border-bottom: 2px solid #fff;">Day 1</th>
+                                <th style="padding: 12px; border-bottom: 2px solid #fff;">Day 2</th>
+                                <th style="padding: 12px; border-bottom: 2px solid #fff;">Day 3</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size: 1.05em; color: #333;">
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px; font-weight: 600;">MAE</td>
+                                <td style="padding: 12px;">0.0713</td>
+                                <td style="padding: 12px; text-decoration: underline;">0.0561</td>
+                                <td style="padding: 12px; color: #d73a49; font-weight: 500;">0.0232</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                <td style="padding: 12px; font-weight: 600;">RMSE</td>
+                                <td style="padding: 12px;">0.1723</td>
+                                <td style="padding: 12px; text-decoration: underline;">0.1487</td>
+                                <td style="padding: 12px; color: #d73a49; font-weight: 500;">0.1156</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; font-weight: 600;">SSIM</td>
+                                <td style="padding: 12px;">0.8988</td>
+                                <td style="padding: 12px; text-decoration: underline;">0.9133</td>
+                                <td style="padding: 12px; color: #d73a49; font-weight: 500;">0.9916</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 15px; background-color: #fffbdd; border-left: 5px solid #ffb400; padding: 12px 15px; border-radius: 4px; color: #444; font-size: 0.95em; text-align: justify; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                        
+                        <strong>Note:</strong> 
+                        Day 3 shows the best performance metrics, but this is  because the <strong>heavy cloud cover</strong> fails to provide reliable validation.
+                        
+                    </div>
+                </div>
+                
+
+                <div style="flex: 2; min-width: 320px; background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 0px; overflow: hidden; display: flex; flex-direction: column;">
+                    
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding-bottom: 15px;">
+                        <img src="Case2_output.png" style="width: 90%; height: auto; border-radius: 4px;">
+                    </div>
+                    <ul style="
+                        margin: 0 0 15px 0; 
+                        padding: 0; 
+                        text-align: center;
+                        list-style-position: inside;
+                        color: #d73a49; 
+                        font-size: 0.95em;
+                    ">
+                        <li><strong>Significant Underprediction</strong></li>
+                        <li><strong>Rely heavily on most recent historical inputs</strong></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <h2 id="summary">Summary</h2>
+
+            <ul style="color: #444; line-height: 1.8; text-align: justify; margin-top: 10px; padding-left: 20px;">
+                
+                <li style="margin-bottom: 20px;">
+                    <strong>Spatio-temporal Analysis & Validation</strong>
+                    
+                    <ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; list-style-type: circle; color: #666;">
+                        <li style="margin-bottom: 5px;">
+                            We conducted a <strong>long-term flood pattern analysis</strong> (2012–2020) over the UMAP region with inundation frequency map and maximum inundation extent map.
+                        </li>
+                        <li>
+                            We validated the <strong>temporal correlation</strong> between remote sensing observation with in-situ measurement data.
+                        </li>
+                    </ul>
+                </li>
+
+                <li style="margin-bottom: 20px;">
+                    <strong>Deep Learning Forecasting</strong> 
+                    <ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; list-style-type: circle; color: #666;">
+                        <li style="margin-bottom: 5px;">
+                            We developed a novel <strong>ConvLSTM-based model</strong> with an encoder-decoder architecture. This approach effectively learns the joint spatio-temporal dependencies from multimodal data, enabling accurate <strong>short-term flood inundation extent forecasting</strong>.
+                
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <strong>Limitation & Future Work</strong> 
+                    <ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; list-style-type: circle; color: #666;">
+                        <li style="margin-bottom: 5px;">
+                    While the model performs well under clear conditions, <strong>optical imagery limitations</strong> (specifically heavy cloud cover) remain a challenge for continuous validation.
+                        </li>
+                        <li>
+                            Future work could explore <strong>data fusion techniques</strong> to integrate SAR observations, which can penetrate clouds, thereby enhancing model robustness and forecasting accuracy.
+                
+                    </li>
+                    </ul>
+                </li>
+
+            </ul>
+
+        </div> </div> <footer>
+        <p>Created for GEOL 2283 Course Project | University of Houston</p>
+    </footer>
+
+</body>
+</html>

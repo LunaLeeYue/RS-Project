@@ -1,8 +1,8 @@
 # Real-time Flood Inundation Forecasting with Satellite Observations and In-situ Streamflow Data
 
-**Author:** Yue Li  
-**Course:** GEOL 2283 Remote Sensing  
-**Date:** Dec 3, 2025  
+**Yue Li**   
+**GEOL 2283 Remote Sensing**  
+**Dec 3, 2025**   
 **University of Houston**
 
 ---
